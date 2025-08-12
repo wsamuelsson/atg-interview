@@ -1,1 +1,37 @@
-# atg-interview
+# Instructions:
+
+For a given game-type, take the three most recent games and output the following:
+
+   - The three favourites from each race - with name and V-odds,
+
+   - Whether or not the favourite horse won,
+
+   - The median or average finishing position of the favourite horse across all races,
+
+   - How often does the favourite horse win?
+
+The following end-points will be of use:
+
+  - https://www.atg.se/services/racinginfo/v1/api/products/<gameType>
+
+  - https://www.atg.se/services/racinginfo/v1/api/games/<gameID>
+
+The game types you will consider are: ['V75', 'GS75', 'V86', 'V64', 'V65', 'V5', 'V4', 'V3', 'dd', 'ld']
+
+    e.g. https://www.atg.se/services/racinginfo/v1/api/products/V75
+
+## Pointers:
+
+* Once you find a way to get all relevant data for a race, build a flat data structure for all the races you will be processing and store in a pandas DataFrame,
+
+* The product end-point will provide you with the most recent games with results for the given game-type,
+
+* The game end-point will provide you with each of the game's races, which in turn contain multiple starts/horses,
+
+* Result = 0 is similar to DNF (did not finish),
+
+* V-odds can be found within each start's `pools.vinnare`,
+
+* The favourite horse is the one with the lowest V-odds,
+
+* Don't be afraid to ask questions if you need any assistance.
