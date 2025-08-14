@@ -25,10 +25,11 @@ def extract_race_ids(recent_races_result:list, n_races:int) -> list:
     return race_ids
 
 def get_horse_name(start: list) -> str:
-    
+    """Returns horse name as string"""
     return start['horse']['name']
 
 def get_placement(result: dict) -> int:
+    """Returns the placement from finishOrder or none if there is no finish"""
     try:
         return result['result']['finishOrder']
     except KeyError as e:
@@ -45,15 +46,17 @@ def get_starters_v_odds_and_placement(race: dict) -> dict:
         v_odds[get_horse_name(start=start)] = (odds, placement)
     return v_odds 
 
-def get_favourites(v_odds: dict) -> list:
+def get_n_favourites(v_odds: dict, n:int ) -> list:
+    """Returns the top n favorites given dict of form horse_name: (odds, placement)"""
     sorted_items = sorted(
         v_odds.items(),
         key=lambda item: item[1][0] if (item[1][0] not in (None, 0)) else math.inf
     )
-    # Take top 3
-    return [{'name': item[0], 'odds':item[1][0], 'placement': item[1][1]} for item in sorted_items[:3]]
+    # Take top n
+    return [{'name': item[0], 'odds':item[1][0], 'placement': item[1][1]} for item in sorted_items[:n]]
 
 def print_race_statistics(game_types:list, race_data: pd.DataFrame) -> None:
+    """Function to print favourite win %, median favourite placement, and mean favourite placement"""
     rows = []
     column_headers = ['game_type', 
                      r'% fav wins', 
@@ -102,7 +105,7 @@ def main():
             races = json_race_data['races']
             for i, race in enumerate(races):   
                 v_odds = get_starters_v_odds_and_placement(race)
-                faves = get_favourites(v_odds)
+                faves = get_n_favourites(v_odds, n=3)
                 
                 rows.append({'race': i, 'game_type':game_type, 
                              'fav_name':faves[0]['name'], 'second_fav_name': faves[1]['name'], 'third_fav_name': faves[2]['name'], 
@@ -110,6 +113,7 @@ def main():
                             'fav_placement': faves[0]['placement'], 'fav_won': int(faves[0]['placement'] == 1)})                
                     
     race_data = pd.DataFrame(columns=column_headers, data=rows)
+    print(race_data)
     print_race_statistics(game_types=game_types, race_data=race_data)
     
 if __name__ == "__main__":
