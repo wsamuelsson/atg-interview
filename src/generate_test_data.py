@@ -43,7 +43,7 @@ def patch_race_json(path):
     
 def main():
     generate_test_data()
-    patch_race_json("../test_data/V75_game.json", favourite_wins=False)
+    patch_race_json("../test_data/V75_game.json")
 
 
 if __name__ == "__main__":
