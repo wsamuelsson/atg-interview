@@ -50,8 +50,11 @@ The game types you will consider are: ['V75', 'GS75', 'V86', 'V64', 'V65', 'V5',
 A simple sanity check to see that we are computing the correct statistics. 
 Generates a json file  where the following stats are true: 
 
-% Fav wins 0.2857142857142857
-Median placement 2.0
-Mean placement 2.5714285714285716
+% Fav wins 0.2857142857142857  
+
+Median placement 2.0  
+
+Mean placement 2.5714285714285716  
+
 
 
