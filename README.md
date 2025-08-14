@@ -35,3 +35,23 @@ The game types you will consider are: ['V75', 'GS75', 'V86', 'V64', 'V65', 'V5',
 * The favourite horse is the one with the lowest V-odds,
 
 * Don't be afraid to ask questions if you need any assistance.
+
+
+ ## Solution:
+
+ ### $python3 output_winner_stats.py
+ Output a dataframe containing the three most recent games, with the top
+ three horses with name and V-odds, favorite's final position, and if they
+ won or not (1 indicates a win, 0 everything else). 
+
+ We also output win-%, median finishing position, and mean finishing poistion for the favourite across all different game types. 
+
+### $python3 output_winner_stats.py --test
+A simple sanity check to see that we are computing the correct statistics. 
+Generates a json where the following stats are true: 
+
+% Fav wins 0.2857142857142857
+Median placement 2.0
+Mean placement 2.5714285714285716
+
+
