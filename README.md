@@ -44,11 +44,11 @@ The game types you will consider are: ['V75', 'GS75', 'V86', 'V64', 'V65', 'V5',
  three horses with name and V-odds, favorite's final position, and if they
  won or not (1 indicates a win, 0 everything else). 
 
- We also output win-%, median finishing position, and mean finishing poistion for the favourite across all different game types. 
+ We also output win-%, median finishing position, and mean finishing position for the favourite across all different game types. 
 
-### $python3 output_winner_stats.py --test
+### $python3 output_winner_stats.py --test=true
 A simple sanity check to see that we are computing the correct statistics. 
-Generates a json where the following stats are true: 
+Generates a json file  where the following stats are true: 
 
 % Fav wins 0.2857142857142857
 Median placement 2.0
