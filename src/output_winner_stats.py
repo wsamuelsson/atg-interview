@@ -1,0 +1,116 @@
+import requests 
+import pandas as pd  
+import math 
+
+class APIError(Exception):
+    pass
+
+def make_session() -> requests.Session:
+    return requests.Session()
+
+def fetch_json(session: requests.Session, url:str) -> dict:
+    try:
+        r = session.get(url)
+        return r.json()
+    except ValueError as e:
+        raise APIError(e)
+
+def extract_race_ids(recent_races_result:list, n_races:int) -> list:
+    """
+    Function to return the id of the n_races recent races. 
+    """
+    race_ids = []
+    for race in range(n_races):
+        race_ids.append(recent_races_result[race]['id'])
+    return race_ids
+
+def get_horse_name(start: list) -> str:
+    
+    return start['horse']['name']
+
+def get_placement(result: dict) -> int:
+    try:
+        return result['result']['finishOrder']
+    except KeyError as e:
+        return None
+
+def get_starters_v_odds_and_placement(race: dict) -> dict:
+    """Returns a dict of starters (horses), mapping to a tuple: (odds of winning, placement)"""
+    starts = race['starts']
+    n_horses = len(starts)
+    v_odds = {}
+    for start in starts:
+        odds = start['pools']['vinnare']['odds']
+        placement = get_placement(start)
+        v_odds[get_horse_name(start=start)] = (odds, placement)
+    return v_odds 
+
+def get_favourites(v_odds: dict) -> list:
+    sorted_items = sorted(
+        v_odds.items(),
+        key=lambda item: item[1][0] if (item[1][0] not in (None, 0)) else math.inf
+    )
+    # Take top 3
+    return [{'name': item[0], 'odds':item[1][0], 'placement': item[1][1]} for item in sorted_items[:3]]
+
+def print_race_statistics(game_types:list, race_data: pd.DataFrame) -> None:
+    rows = []
+    column_headers = ['game_type', 
+                     r'% fav wins', 
+                     'median fav finish', 
+                     'mean fav finish']
+    for game_type in game_types:
+        game_type_mask = race_data["game_type"].str.upper() == game_type.upper()
+        game_type_data = race_data[game_type_mask]
+        win_pct = game_type_data['fav_won'].mean()
+        median_finish = game_type_data['fav_placement'].median()
+        mean_finish = game_type_data['fav_placement'].mean()
+        
+        rows.append({'game_type':game_type, 
+                     r'% fav wins': win_pct, 
+                     'median fav finish': median_finish, 
+                     'mean fav finish': mean_finish})
+                
+    race_statistics = pd.DataFrame(data=rows, columns=column_headers)
+    print(race_statistics)
+def main():
+    s = make_session()
+
+    game_types = ['V75', 'GS75', 'V86', 'V64', 'V65', 'V5', 'V4', 'V3', 'dd', 'ld']
+    recent_races = {}
+    n_races = 3
+    base_url_product = r"https://www.atg.se/services/racinginfo/v1/api/products/"
+    base_url_games = r"https://www.atg.se/services/racinginfo/v1/api/games/"
+
+
+    column_headers = ['race', 'game_type', 'fav_name', 'second_fav_name', 'third_fav_name', 
+               'fav_odds', 'second_fav_odds', 'third_fav_odds', 
+               'fav_placement', 'fav_won']
+    rows = []
+
+    for game_type in game_types:
+        #completed races in results
+        result_url  = base_url_product + game_type
+        result_json = fetch_json(session=s, url=result_url)
+        recent_races[game_type] = extract_race_ids(recent_races_result=result_json['results'], n_races=n_races)
+    
+    for game_type in game_types:
+        ids = recent_races[game_type]
+        for id in ids:
+            race_url = base_url_games + id
+            json_race_data = fetch_json(session=s, url=race_url)
+            races = json_race_data['races']
+            for i, race in enumerate(races):   
+                v_odds = get_starters_v_odds_and_placement(race)
+                faves = get_favourites(v_odds)
+                
+                rows.append({'race': i, 'game_type':game_type, 
+                             'fav_name':faves[0]['name'], 'second_fav_name': faves[1]['name'], 'third_fav_name': faves[2]['name'], 
+                            'fav_odds': faves[0]['odds'], 'second_fav_odds': faves[1]['odds'], 'third_fav_odds': faves[2]['odds'], 
+                            'fav_placement': faves[0]['placement'], 'fav_won': int(faves[0]['placement'] == 1)})                
+                    
+    race_data = pd.DataFrame(columns=column_headers, data=rows)
+    print_race_statistics(game_types=game_types, race_data=race_data)
+    
+if __name__ == "__main__":
+    main()
