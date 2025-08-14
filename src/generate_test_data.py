@@ -7,7 +7,7 @@ np.random.seed(1337)
 def generate_test_data():
     out_dir = "../test_data/"
     s = make_session()
-    for game_type in ["V75", "GS75"]:
+    for game_type in ["V75"]:
         url = f"https://www.atg.se/services/racinginfo/v1/api/products/{game_type}"
         result_json = fetch_json(session=s, url=url)
         with open(out_dir + f"{game_type}_product.json", "w") as f:
@@ -20,7 +20,7 @@ def generate_test_data():
             json.dump(game_json, f)
 
 
-def patch_race_json(path, favourite_wins=True):
+def patch_race_json(path):
     fav_placements = []
     with open(path) as f:
         data = json.load(f)
@@ -37,10 +37,10 @@ def patch_race_json(path, favourite_wins=True):
                 start["result"]["finishOrder"] = i+2
     with open(path, "w") as f:
         json.dump(data, f)
-    print(np.mean(fav_placements))
-    print(np.median(fav_placements))
-    print(np.sum(np.array(fav_placements) == 1)/len(fav_placements))
-
+    print(r"% Fav wins", np.sum(np.array(fav_placements) == 1)/len(fav_placements))
+    print("Median placement", np.median(fav_placements))
+    print("Mean placement", np.mean(fav_placements))
+    
 def main():
     generate_test_data()
     patch_race_json("../test_data/V75_game.json", favourite_wins=False)
