@@ -1,7 +1,9 @@
 import requests 
 import pandas as pd  
 import math 
-
+import argparse
+import json 
+from typing import Callable
 class APIError(Exception):
     pass
 
@@ -15,6 +17,10 @@ def fetch_json(session: requests.Session, url:str) -> dict:
     except ValueError as e:
         raise APIError(e)
 
+def _fetch_json_from_disk(session: requests.Session, url: str, data_dir="../test_data/") -> dict:
+    """Load JSON from disk. Use for testing only"""
+    with open(data_dir + '/' + 'V75_game.json') as f:
+        return json.load(f)
 def extract_race_ids(recent_races_result:list, n_races:int) -> list:
     """
     Function to return the id of the n_races recent races. 
@@ -69,7 +75,7 @@ def get_race_statistics(game_types:list, race_data: pd.DataFrame) -> pd.DataFram
     for game_type in game_types:
         game_type_mask = race_data["game_type"].str.upper() == game_type.upper()
         game_type_data = race_data[game_type_mask]
-        win_pct = game_type_data['fav_won'].mean()
+        win_pct = 100*game_type_data['fav_won'].mean() #Multiply with 100 to get in percent
         median_finish = game_type_data['fav_placement'].median()
         mean_finish = game_type_data['fav_placement'].mean()
         
@@ -80,13 +86,13 @@ def get_race_statistics(game_types:list, race_data: pd.DataFrame) -> pd.DataFram
                 
     return pd.DataFrame(data=rows, columns=column_headers)
 
-def get_race_data(session: requests.Session, base_url_games:str , column_headers:list, game_types:list, recent_races:dict) -> pd.DataFrame:
+def get_race_data(session: requests.Session, base_url_games:str , column_headers:list, game_types:list, recent_races:dict, fetcher: Callable) -> pd.DataFrame:
     rows = []
     for game_type in game_types:
         ids = recent_races[game_type]
         for id in ids:
             race_url = base_url_games + id
-            json_race_data = fetch_json(session=session, url=race_url)
+            json_race_data = fetcher(session=session, url=race_url)
             
             races = json_race_data['races']
             for i, race in enumerate(races):   
@@ -108,26 +114,32 @@ def get_recent_n_races(session: requests.Session, base_url_product:str, game_typ
         recent_races[game_type] = extract_race_ids(recent_races_result=result_json['results'], n_races=n_races)
     return recent_races
     
-def main():
+def main(test):
+    fetcher = _fetch_json_from_disk if test else fetch_json
     s = make_session()
-
-    game_types = ['V75', 'GS75', 'V86', 'V64', 'V65', 'V5', 'V4', 'V3', 'dd', 'ld']
+    game_types = ['V75'] if test else ['V75', 'GS75', 'V86', 'V64', 'V65', 'V5', 'V4', 'V3', 'dd', 'ld']
     
     base_url_product = r"https://www.atg.se/services/racinginfo/v1/api/products/"
-    base_url_games = r"https://www.atg.se/services/racinginfo/v1/api/games/"
+    base_url_games   = r"https://www.atg.se/services/racinginfo/v1/api/games/"
 
 
-    column_headers = ['race', 'game_type', 'fav_name', 'second_fav_name', 'third_fav_name', 
-               'fav_odds', 'second_fav_odds', 'third_fav_odds', 
-               'fav_placement', 'fav_won']
+    column_headers = ['race', 'game_type', 'fav_name', 
+                    'second_fav_name', 'third_fav_name', 
+                    'fav_odds', 'second_fav_odds', 'third_fav_odds', 
+                    'fav_placement', 'fav_won']
     
     recent_races = get_recent_n_races(session=s, base_url_product=base_url_product, game_types=game_types)
          
     race_data = get_race_data(session=s, base_url_games=base_url_games, column_headers=column_headers, 
-                              game_types=game_types, recent_races=recent_races)
+                              game_types=game_types, recent_races=recent_races, fetcher=fetcher)
     print(race_data)
 
     race_stats = get_race_statistics(game_types=game_types, race_data=race_data)
     print(race_stats)
+
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--test", type=lambda x: x.lower() == "true", default=False,
+                        help="Run in test mode with local JSON instead of live API.")
+    args = parser.parse_args()
+    main(test=args.test)

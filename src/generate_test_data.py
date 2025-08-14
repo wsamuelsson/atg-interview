@@ -37,7 +37,7 @@ def patch_race_json(path):
                 start["result"]["finishOrder"] = i+2
     with open(path, "w") as f:
         json.dump(data, f)
-    print(r"% Fav wins", np.sum(np.array(fav_placements) == 1)/len(fav_placements))
+    print(r"% Fav wins", 100*np.sum(np.array(fav_placements) == 1)/len(fav_placements))
     print("Median placement", np.median(fav_placements))
     print("Mean placement", np.mean(fav_placements))
     
