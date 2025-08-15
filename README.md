@@ -42,9 +42,16 @@ The game types you will consider are: ['V75', 'GS75', 'V86', 'V64', 'V65', 'V5',
  ### $python3 output_winner_stats.py
  Output a dataframe containing the three most recent games, with the top
  three horses with name and V-odds, favorite's final position, and if they
- won or not (1 indicates a win, 0 everything else). 
+ won or not (1 indicates a win, 0 everything else), for each game type.  
 
  We also output win-%, median finishing position, and mean finishing position for the favourite across all different game types. 
+
+ If a horse, mostly relevant for the favorite horse in our case, is
+ disqualified, we give this horse a None placement (which becomes  NaN in
+ pandas) so this does not count towards its median or mean finishing position,
+ it just effects its % of wins. 
+
+Also, I did not find the results (finishing position etc) in the product endpoint but in the game end point. 
 
 ### $python3 output_winner_stats.py --test=true
 A simple sanity check to see that we are computing the correct statistics. 
