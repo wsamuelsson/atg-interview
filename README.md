@@ -55,7 +55,7 @@ Also, I did not find the results (finishing position etc) in the product endpoin
 
 ### $python3 output_winner_stats.py --test=true
 A simple sanity check to see that we are computing the correct statistics. 
-Generates a json file  where the following stats are true: 
+Computes statistics on a json file  where the following stats are true: 
 
 % Fav wins 28.571428571428573
 
