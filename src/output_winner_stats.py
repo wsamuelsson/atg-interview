@@ -8,9 +8,11 @@ class APIError(Exception):
     pass
 
 def make_session() -> requests.Session:
+    """Starts persistent session"""
     return requests.Session()
 
 def fetch_json(session: requests.Session, url:str) -> dict:
+    """Gets json object from endpoint given by url"""
     try:
         r = session.get(url)
         return r.json()
@@ -57,7 +59,7 @@ def get_n_favourites(v_odds: dict, n:int ) -> list:
     """Returns the top n favorites given dict of form horse_name: (odds, placement)"""
     sorted_items = sorted(
         v_odds.items(),
-        key=lambda item: item[1][0] if (item[1][0] not in (None, 0)) else math.inf
+        key=lambda item: item[1][0] if (item[1][0] not in (None, 0)) else math.inf #item in items of form (horse_name, (odds, placement))
     )
     # Take top n
     return [{'name': item[0], 'odds':item[1][0], 'placement': item[1][1]} for item in sorted_items[:n]]
@@ -87,7 +89,12 @@ def get_race_statistics(game_types:list, race_data: pd.DataFrame) -> pd.DataFram
     return pd.DataFrame(data=rows, columns=column_headers)
 
 def get_race_data(session: requests.Session, base_url_games:str , column_headers:list, game_types:list, recent_races:dict, fetcher: Callable) -> pd.DataFrame:
+    """
+    Function to return a dataframe containing data for each race for the last three games of the given game type(s). 
+    """
+    
     rows = []
+
     for game_type in game_types:
         ids = recent_races[game_type]
         for id in ids:
@@ -106,6 +113,7 @@ def get_race_data(session: requests.Session, base_url_games:str , column_headers
     return   pd.DataFrame(columns=column_headers, data=rows)
 
 def get_recent_n_races(session: requests.Session, base_url_product:str, game_types: list, n_races=3) -> dict:
+    """Function which returns the n_races (default 3) recent race ids for given game type(s)"""
     recent_races = {}
     for game_type in game_types:
         #completed races in results
